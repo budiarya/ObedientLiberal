@@ -1,0 +1,567 @@
+---
+title: "Obedient Liberals? Mass Attitudes in Monarchy Enclave of Yogyakarta, Indonesia"
+subtitle: "PS549 Research Paper, Spring 2021"
+author: "Arya Budi"
+date: ""
+header-includes: 
+- \usepackage{setspace}\doublespacing
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+fontsize: 12pt
+linespacing: double
+geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
+bibliography: /Users/aryabudi/Documents/@Illinois/Academic/references.bib
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r setup, echo=FALSE, results=FALSE, include=FALSE, cache=FALSE}
+rm(list = ls())
+knitr::opts_chunk$set(echo = FALSE)
+library(here)
+source(here("rmd_setupAB.R"))
+```
+
+
+```{r libraries, include=FALSE}
+library(texreg) # Nicely formatted regression tables 
+library(effects) # visualize effects
+library(stargazer) # Nicely formatted regression tables 
+library(effects) # display plot for logit 
+library(readxl)
+library(car)
+library(devtools)
+library(papeR)
+library(knitr)
+library(kableExtra)
+
+setwd("~/Documents/Journal Manuscript/MANUSCRIPTS for International Journals/Sultanah/Dataset Sultanah")
+
+# Data sets
+sultan19 <- read_excel("SultanahAB.xlsx", sheet = "2019 modified 99-102")
+sultan18 <- read_excel("SultanahAB.xlsx", sheet = "2018 Dataset")
+sultan17 <- read_excel("SultanahAB.xlsx", sheet = "2017 Dataset")
+
+```
+
+```{r Sultan.Variables, echo=FALSE, include=FALSE}
+########### Dependent Variables
+## DV-2017
+sultan17$gub17 <- Recode(sultan17$P70, 
+                         "1=0; 2=1; 99=NA") # Origin: 1 = auto; 2 = elect
+## DV-2018
+autogub18 <- recode(sultan18$P108, "'1'='0'; '2'='0'; 
+                    '3'='1';'4'='1'; '5'='99'") #1=v.disagree, 4=v.agree by heredity
+electgub18 <- recode(sultan18$P109, "'1'='0'; '2'='0'; 
+                    '3'='1';'4'='1'; '5'='99'") #1=v.disagree, 4=v.agree by election
+gub18 <- paste(electgub18, autogub18)
+gub18am <- Recode(gub18, "'0 0'='2'; '0 1'= '0'; '0 99' = 99;
+'1 0' = '1'; '1 1' = '2'; '1 99' = 99; '99 0' = 99; '99 1'= 99;
+'99 99' = 99; 'NA NA'=99")
+
+sultan18$gub18 <- Recode(gub18, "'0 0'=NA; '0 1'= '0'; '0 99' = NA;
+'1 0' = '1'; '1 1' = NA; '1 99' = NA; '99 0' = NA; '99 1'= NA;
+'99 99' = NA; 'NA NA'=NA")
+
+# DV-2019
+autogub19 <- recode(sultan19$P100, "'1'='0'; '2'='0'; 
+                    '3'='1';'4'='1'; '5'='99'") #1=v.disagree, 4=v.agree by heredity
+electgub19 <- electgub19 <- recode(sultan19$P101, 
+                                   "'1'='0'; '2'='0'; '3'='1';
+                                   '4'='1'; '5'='99'") #1=v.disagree, 4=v.agree by election
+gub19 <- paste(electgub19, autogub19)
+gub19am <- Recode(gub19, "'0 0'='2'; '0 1'= '0'; '0 99' = 99;
+'1 0' = '1'; '1 1' = '2'; '1 99' = 99; '99 0' = 99; '99 1'= 99;
+'99 99' = 99; 'NA NA'=99")
+sultan19$gub19 <- Recode(gub19, "'0 0'=NA; '0 1'= '0'; '0 99' = NA;
+'1 0' = '1'; '1 1' = NA; '1 99' = NA; '99 0' = NA; '99 1'= NA;
+'99 99' = NA; 'NA NA'=NA")
+
+
+################# Independent Variables
+## 2017
+sultan17$sultanah17 <- recode(sultan17$P72, "0 = NA; 99=NA; 
+                              1:2=0; 3:4=1") # 1=v.disagree 4=v.agree
+sultan17$knowdiy17 <- recode(sultan17$P65, "0 = NA; 99=NA;
+                             1:2=0; 3:4=1") # 1=v.dontknow 4=v.know
+sultan17$jobprov17 <- recode(sultan17$P82, "0 = NA; 99=NA;
+                             1:2=0; 3:4=1") # 1=v.dissatiffied 4=v.satisfied
+sultan17$women17 <- recode(sultan17$P56, "0 = NA; 99=NA;
+                              1:2=0; 3:4=1")# 1=v.disagree 4=v.agree
+sultan17$potvto17 <- recode(sultan17$P52, "0 = NA; 99=NA;
+                            1=1; 2=0; 3=0") # Ori: 1=Yes 2=NotSure 3=No
+sultan17$sex17 <- sultan17$Gender # 1=Male  2=Female
+sultan17$edu17 <- recode(sultan17$P125, "0 = NA; 99=NA") #1=No.Edu 7=HigherEdu
+sultan17$income17 <- recode(sultan17$P127, "0 = NA ;99=NA") #1=LowIncome 6=HighIncome
+sultan17$rel.affi17 <- Recode(sultan17$P141, 
+                              "0=NA;9:99=NA;1='NU'; 2='Muh'; 3:8='Others'") 
+sultan17$rel.affi0117 <- Recode(sultan17$P141, 
+                              "0=NA;9:99=0;1:8=1") # 1=reported 0=unreported
+sultan17$age17 <- recode(sultan17$P143, "0 = NA"); #continous
+sultan17$relig17 <- recode(sultan17$P140,
+                           "0 = NA; 99=NA; 1=1; 1:7=0") # 1=Islam 2=Others
+sultan17$ethnic17 <- recode(sultan17$P142,"1:9=0; 10=1; 11:99=0") # 10=Java
+
+## 2018
+sultan18$sultanah18 <- Recode(sultan18$P110,"1:2=0; 3:4=1; 5=NA; 11=0") 
+sultan18$knowdiy18 <- Recode(sultan18$P105, "1:2=0; 3:4=1; 5=NA")
+sultan18$jobprov18 <- Recode(sultan18$P116, "1:2=0; 3:4=1; 5=NA")
+sultan18$women18 <- Recode(sultan18$P101, "1:2=0; 3:4=1; 5=NA") #1=v.disagree, 4=v.agree
+sultan18$potvto18 <- recode(sultan18$P97,"1=1; 2=0; 3=0; 4=NA; 7=NA") # Ori: 1=Yes 2=NotSure 3=No
+
+# Demography
+sultan18$sex18 <- sultan18$Gen
+sultan18$edu18 <- sultan18$P1 #1=No.Edu 6=HigherEdu
+sultan18$income18 <- Recode(sultan18$P3, "8=NA") #1=LowIncome 7=HighIncome
+orgn18 <- sultan18$P5[sultan18$P5=="18"]<-NA
+sultan18$rel.affi18 <- Recode(sultan18$P5, 
+                              "8='NU'; 7='Muh'; 
+                              1:6='Others'; 9:10='Others';
+                              12='Others'; 11=NA; 13=NA") 
+sultan18$rel.affi0118 <- Recode(sultan18$P5, 
+                              "13=0; 11=0;1:10=1; 12=1") # 1=reported 0=unreported
+sultan18$age18 <- Recode(sultan18$P7, "2=NA") # continous
+sultan18$relig18 <- recode(sultan18$P4,"0 = NA; 99=NA; 
+                           1=1; 1:7=0") # 1=Islam 2=Others)
+sultan18$ethnic18 <- Recode(sultan18$P6, "1:7=0; 11=1; 12:24=0") # 11=Java
+
+
+## 2019
+sultan19$sultanah19 <- Recode(sultan19$P102,"1=0; 3=1; 5=NA") 
+sultan19$knowdiy19 <- Recode(sultan19$P99,"1:2=0; 3:4=1; 5=NA")
+sultan19$jobprov19 <- Recode(sultan19$P107, "1:2=0; 3:4=1; 5=NA")
+sultan19$women19 <- Recode(sultan19$P97, "1:2=0; 3:4=1; 5=NA")
+sultan19$potvto19 <- Recode(sultan19$P93, "1=1; 2=0; 3=0; 4=NA")
+
+# Demograph
+sultan19$sex19 <- Recode(sultan19$Gender, "'L'=1; 'P'=2")
+sultan19$edu19 <- sultan19$P1
+sultan19$income19 <- Recode(sultan19$P3, "8=NA")
+sultan19$rel.affi19 <- Recode(sultan19$P5, 
+                              "8='NU'; 7='Muh'; 
+                              1:6='Others'; 9:10='Others';
+                              12='Others'; 11=NA; 18=NA; 13=NA") 
+sultan19$rel.affi0119 <- Recode(sultan19$P5, 
+                              "13=0; 11=0; 18=0 ;1:10=1;  12=1") # 1=reported 0=unreported
+sultan19$age19 <- Recode(sultan19$P7, "2:3=NA")
+sultan19$relig19 <- Recode(sultan19$P4, "0 = NA; 99=NA; 
+                           1=1; 1:7=0") # 1=Islam 2=Others)
+sultan19$ethnic19 <- Recode(sultan19$P6, "1:10=0; 11=1; 12:28=0") # 11=Java
+
+## Binding
+# names(sultan17[,155:170])
+# names(sultan18[,186:199])
+# names(sultan19[,181:194])
+dat17 <- data.frame("gub"=sultan17$gub17, 
+                    "sultanah"=sultan17$sultanah17, 
+                    "knowdiy"=sultan17$knowdiy17,
+                    "jobprov"=sultan17$jobprov17,
+                    "women"=sultan17$women17,
+                    "potvto"=sultan17$potvto17,
+                    "income"=sultan17$income17,
+                    "religaf"=sultan17$rel.affi17,
+                    "reliaf01"=sultan17$rel.affi0117,
+                    "age"=sultan17$age17,
+                    "relig"=sultan17$relig17,
+                    "ethnic"=sultan17$ethnic17,
+                    "sex"=sultan17$sex17,
+                    "edu"=sultan17$edu17,
+                    stringsAsFactors = FALSE)
+
+dat18 <- data.frame("gub"=sultan18$gub18, 
+                    "sultanah"=sultan18$sultanah18, 
+                    "knowdiy"=sultan18$knowdiy18,
+                    "jobprov"=sultan18$jobprov18,
+                    "women"=sultan18$women18,
+                    "potvto"=sultan18$potvto18,
+                    "income"=sultan18$income18,
+                    "religaf"=sultan18$rel.affi18,
+                    "reliaf01"=sultan18$rel.affi0118,
+                    "age"=sultan18$age18,
+                    "relig"=sultan18$relig18,
+                    "ethnic"=sultan18$ethnic18,
+                    "sex"=sultan18$sex18,
+                    "edu"=sultan18$edu18,
+                    stringsAsFactors = FALSE)
+
+dat19 <- data.frame("gub"=sultan19$gub19, 
+                    "sultanah"=sultan19$sultanah19, 
+                    "knowdiy"=sultan19$knowdiy19,
+                    "jobprov"=sultan19$jobprov19,
+                    "women"=sultan19$women19,
+                    "potvto"=sultan19$potvto19,
+                    "income"=sultan19$income19,
+                    "religaf"=sultan19$rel.affi19,
+                    "reliaf01"=sultan19$rel.affi0119,
+                    "age"=sultan19$age19,
+                    "relig"=sultan19$relig19,
+                    "ethnic"=sultan19$ethnic19,
+                    "sex"=sultan19$sex19,
+                    "edu"=sultan19$edu19,
+                    stringsAsFactors = FALSE)
+
+sultan <- rbind(dat17,dat18,dat19)
+```
+
+```{r WVS_Variables,  echo=FALSE, include=FALSE, results='asis'}
+setwd("~/Documents/@Illinois/Academic/Data Sets/WVS")
+load("WVS_Cross-National_Wave_7_R_v1_4.rdata")
+w<-data.frame(`WVS_Cross-National_Wave_7_R_v1_4`)
+
+i<-subset(w, subset = (w$B_COUNTRY_ALPHA=="IDN"))
+i$elecnational <- Recode(i$Q222, "1=1; 2=1; 3=0; 4=0") # vote in national election; 1= always, 2 = usually; 3 =never; 4 not allowed
+i$eleclocal <- Recode(i$Q221, "1=1; 2=1; 3=0; 4=0") # vote in local election; 1= always, 2 = usually; 3 =never; 4 not allowed
+i$women<- i$Q249 # women have the same rights as men; 1-10(essential)
+i$demimportant <- i$Q250 # How important is it for you to live in a country that is governed democratically? 1 means it is “not at all important” and 10 means “absolutely important”
+i$howdem <- i$Q251 # how democratically is this country being governed today? 1 means that it is “not at all democratic” and 10 means that it is “completely democratic,”
+i$satisfaction <- i$Q252 # How satisfied are you with how the political system is functioning in your country these days? 1 means not satisfied at all and 10 means completely satisfied. 
+i$demgood <- i$Q238 # would you say it is a very good, fairly good, fairly bad or very bad way of Having a democratic political system? 1.- Very good 2.- Fairly good 3.- Fairly bad 4.- Very bad
+
+i$edu <- i$Q275 #0=noedu, 8=doctoral
+i$age <- i$Q262 # continous
+i$sex <- i$Q260 # 1=male, 2=female
+i$income <- i$Q288 # 10 scale, 1=lowest, 10=highest.
+
+# glmwvsnat <- glm(elecnational ~ womenright, family = "binomial", data = i)
+# glmwvsloc <- glm(eleclocal ~ womenright, family = "binomial", data = i)
+```
+
+
+
+
+# Introduction 
+
+\ This paper investigates public attitudes toward democracy in the context of monarchy enclave. Theoretically, I revisit the concept of allegiant citizens proposed in the Civic Culture model by @almond2015civic[1963] and typical concepts of mass attitudes offered by the Civic Culture revisionists  [see @norris1999critical; @welzel2006democratization; @klingemann2014dissatisfied; @dalton2014civic). Yet, public attitudes in a monarchy context are understudied relative to those in advanced and new democracies. Thus, by employing the case in monarchy enclave of Yogyakarta province in Indonesia, this paper tries to uncover mass attitudes toward democracy in a monarchy setting where self-appointed governor by monarchy institution substitutes gubernatorial election. How do people in a monarchy enclave view democracy? To what extent do their attitudes conform those in autocracy or democracy? What do explain people's attitudes in such an regime enclave?
+
+\ This study primarily analyzes data of public opinion surveys conducted by the Research Center for Politics and Government (PolGov), Universitas Gadjah Mada, Indonesia. Given the population is eligible voters in Yogyakarta province, the research center conducted the surveys in three waves: 2017, 2018, and 2019 with 779, 602, and 800 respondents, respectively, summing a total of 2181 respondents. I also complement the analysis of mass attitudes toward democracy at the national level with the 2018 World Values Survey (WVS). This wave-7 WVS data covers 3200 samples of eligible voters in Indonesia [@haerpfer2020world]. 
+
+\ Examination of the data shows the existence of obedient liberals, i.e., people who believe in liberal views and embrace self-expression values but are proud of preferring a monarchy system for the gubernatorial seat. In this study, the obedient liberals are approximated by people's strong support for women's rights in politics and, at the same time, strong agreement with the monarchy regime rather than the election regime. This distinguished attitude revisits Almond and Verba's allegiant citizens, proud of the democratic system and trust towards political institutions. In the case of the Yogyakarta enclave, the attitude of having pride and trust does not necessarily address a democratic regime but also any political regime, including the monarchy. By drawing on the mass attitudes under such a particular regime, this paper concludes that historical path, habituation, and leadership in the monarchy enclave have paved the presence and persistence of obedient liberals.
+
+\ To elaborate these arguments, I develop this paper as follows. First, I discuss literature on public attitudes and democracy ranging from the classic to the most recent scholarship in various regime types. The following section outlines the theories I employ in developing hypotheses, followed by a brief elaboration of the Yogyakarta case. The third section is devoted to elaborating the data and methods. Lastly, I present the findings and discussion, which are closed with a conclusion and future research suggestions.
+
+# Trajectory of Mass Attitudes
+
+\ Debates on the matter of mass attitudes on democracy stem from a pioneering work by Almond and Verba (1963). To draw their seminal argument of the importance of political culture for democracy, they relied on surveys of 1000-person samples in five societies (countries) that are primarily industrial, namely, the United States, the United Kingdom, Germany, Italy, and Mexico. As a pioneering work, Almond and Verba propose a concept of allegiant democrats in their Civic Culture model. Amplified by Inglehart's studies (1988, 1990), this concept refers to majority citizens who support the democratic system and trust the institutions, especially the parliament, that underpin the endurance of democracy. They argue that such a public is typical in advanced industrial democracies. Muller and Seligson (1994), nevertheless, criticizes such unidirectional scholars. They argue that "causal linkages between levels of civic culture attitudes and change in the level of democracy are not supportive of the thesis that civic culture attitudes are the principal or even a major cause of democracy" (Muller and Seligson 1994, 647). Muller and Seligson's criticism of the civic culture argument relies on the argument that the relationship between civic culture and democracy is not unidirectional but might be reciprocal. Intrigued by Muller and Seligson's critical examination, I agree with the notion that reciprocal (or cyclical) relationship between political regimes and mass attitudes might operate in certain contexts, including monarchy regimes. That even includes a reversed-directional relationship that political regimes cause (or shape) mass attitudes and values.
+
+\ Studies of mass attitudes and democracy, nevertheless, keep growing. As suggested by Dalton and Shin (2014, 91), scholars of political culture in the past (Pye and Verba 1965; Almond and Coleman 1960; Lerner 1958)  contend that following World War II, the political cultures of many Third World nations lacked Almond and Verba's allegiant citizen, relative to Britain and the United States. That might be true during that time, but nations progress and advance their political culture following the fourth wave of democratization [see @huntington1991democracy], including Indonesia.^[Dalton and Shin do not examine preference to the election (the primary indicator of democracy) and electoral participation to explain support for democracy. This might generate a misleading result where Indonesia, just after the fall of the authoritarian regime when the WVS was conducted, is captured to prefer authoritarianism. The fact is that Indonesia when the five-wave World Values Survey was conducted in the 2000s, encountered social turbulence across the provinces, such as racial sentiments and clashes among ethnic groups [see @bertrand2004nationalism].] Similarly, Dalton and Shin argue that citizens in established democracies change to be less allegiant and pursue contentious political action courses. Dalton and Shin also realize the change in developing nations.
+
+\  As revisionists of the civic culture model, Dalton and Shin contend that industrial democracies' citizen attitudes in the past decades are no longer allegiant as they are becoming assertive though they still support the primary argument of civic culture. To be sure, other revisionists also detected the shifts of mass attitudes that people turn to be critical citizens (Norris 1999), emancipative citizens (Welzel 2006, 2013), and engaged citizens (Dalton 2009). Furthermore, some studies also find that the shifts toward such kind of assertive attitudes occur either in well-established or in new democracies such as dissatisfied democrat (Klingemann 2014). @mujani2018voting, for instance, also finds the ubiquitous critical democrats in Indonesia, the largest Muslim-population new democracy. Departing my query from that shift of attitudes, I suspect that certain factors cause the shift and shape mass attitudes and values. One of these factors is possibly regime institutions. 
+
+\ Such a shift also occur in authoritarian regimes, employing the sixth wave of WVS and the initial data sets, they find that mass attitudes in several non-democratic states, including Vietnam, China, Jordan, and Malaysia, display significant support for the governmental institutions (Dalton and Welzel 2014, 99). Such a finding violates Almond and Verba's civic culture concept (allegiant citizens) found in industrial democracies.
+
+\   Evidence from the subnational level shows that political regimes---implicitly the institutions---shape mass attitudes and values. Here, I draw the work from @putnam1993making in Italy and @hiskey2020life in the case of dominant-party enclaves in Mexico, known as Estado de Mexico or Edomex and San Luis province of Argentina [see also @hiskey2020authoritarian]. Hiskey and Moseley find that "political attitudes and behaviors [...] are a product of political systems characterized by uneven electoral playing fields, pervasive corruption, and an overt conflation of the dominant party and the state" (Hiskey and Moseley 2020, 9). They further suggest that politicization of the rule of law, a tilting of the electoral arena, and partisan deployment of state resources shape citizens' daily experiences with their political system, including their understanding of democratic citizens.
+
+\ The question is how the direction of mass attitudes in authoritarian, party-dominant, and monarchy enclaves exist and persist. Yet, while public attitudes have been vastly examined in advanced and new democracies, public attitudes in a monarchy context are understudied. Though scholars also reveal a democratic enclave in an authoritarian setting or an authoritarian enclave in a democratic regime [see @gilley2010democratic], it is intriguing to seek public attitude in a monarchy enclave in a new democracy.
+
+# Revisiting Civic Culture Model
+
+\ As proposed by Almond and Verba (1963), political culture relies on the types of congruence of political culture and structure, namely, allegiance, apathy, and alienation. They suggest that supportive public that aligns themselves with the political community and trusts the government institutions is conducive for democracy (Almond and Verba 2015 [1963], 443-444). This argument constitutes the basic idea of civic culture, and allegiant citizens' concept refers to such a supportive public. To derive such a conclusion, Almond and Verba developed a series of their framework, i.e., political objects such as state, parties, policy institutions to define the structure; and public orientations including knowledge, feeling, and judgment toward the political objects to construe political cultures. In sort, the allegiant citizens that situate civic culture stem from the characteristics of people in western industrial democracy that appertain knowledgeable, well educated, and prosper society. These characteristics are linked to modernization theory that draws consequential effect of economic development [see @lipset1959some; @arat1988democracy]
+
+\   Almond and Verba's behavioral approach of the study of democracy then situates the studies of the relationship between mass attitudes and democracy. Prominent with his seminal and pioneering work entitled "the renaissance of political culture," @inglehart1988renaissance follows the path paved by Almond and Verba by examining the earliest wave of the World Values Survey, which was originated from European Values Surveys (EVS) in 1981. This work then extensively was elaborated in his book [@inglehart2018culture]. Similar to what Almond and Verba did two decades earlier, Inglehart's first WVS wave merely addressed western industrial democracies. They prove that mass attitudes characterized by mutual trust, tolerance, and pride of the political system are fundamental for the sustenance of democratic institutions. 
+
+\ Furthermore, @inglehart2010changing, on the basis of the accumulated data from the first (1981) to the fifth (2005-2007) World Values Survey, argues that modernization-linked mass attitudes, including inter-personal trust, life-satisfaction, and self-expression values are stable and have predictive power. Following the literature of culture, others also argue that social modernization and globalization foster a democratic civic culture through education, access to information, broad occupations (Dalton and Shin 2014, 95). Modernization-linked mass attitudes are in line with the previous argument in Inglehart and Welzel's work, where they drew a famous cultural map across societies (countries) [see @inglehart2005modernization]. @inglehart2010changing also suggests that when socio-cultural change is dependent, religion and ethnicity persist. They further argue that "the evidence also supports the Weberian view that a society's religious values leave a lasting imprint" [@inglehart2010changing, p. 553].
+
+\ Scholarship on the role of religion is also in the same vein that embedded values within the religion and society (the believers) cause democracy (or reverse). In terms of democracy, these authors suggest that Protestantism is positively associated while Islam is negatively connected. For instance,  @woodberry2012missionary conducted the historical and statistical analysis of protestant missionaries to argue that Protestantism plays a part as a cause of the cause (modernization). He argues that the positive association between Protestantism and democracy is consistent across various contexts, including industrial democracies in Western Europe and European settler colonies such as North America and Australia, post-Soviet (and post-communist) countries with protestant/catholic majority. He argues that conversionary protestants have historically expanded mass printing, mass education, civil society, and the rule of law--the prerequisites for democracy.
+
+\ In support of Woodberry's arguments, @tusalem2009role also adds some points that Catholicism has fewer effects---and much less for Islam---than those of Protestantism in 60 transitional states. Tusalem's findings strengthen other studies suggesting that Islamic culture harms---or is incompatible with---democracy (see @huntington1991democracy; @midlarsky1998democracy; @norris2014mecca). In short, authors here and elsewhere firmly suggest that Protestantism is suitable or supportive for democracy---or at least we do not find authors suggesting Protestantism promote autocracy (or democracy reverse)---but not for Islam. Huntington contends that Islam has been a cultural obstacle for democracy because of Islamic leaders and the doctrine. He argues that "it is hard to identify any Islamic leader who made a reputation as an advocate and supporter of democracy while in office" [@huntington1991democracy, p. 22]. In terms of doctrinal obstacles in Islam, he stresses that Islam rejects any distinction between the religious community and the political community; and political participation is linked to religious affiliation [@huntington1991democracy, p. 28]. 
+  
+\  However, returns to decades ago, Putnam's (1994) study emphasizes that the ways how people live and experience associationism under the different practices of Catholic association signify that the extent of religious association matters in shaping mass attitudes. Through prolonged exhaustive research in twenty Italian regions, Putnam (1994) finds that associational life--an empirical notion closely related to his social capital concept-- in each region affects the government's performance. Notably, northern areas' prevalent civic associations in Italy explain their good government than those in the southern regions. Though devout Catholics similarly inhabit in north and south, the presence of Catholic Action---the organized civic association is driven by the church in the northern regions---relative to Catholicism's familist hierarchy in the south fosters the people participation equally (Putnam 1994, 91-110). It means that the religious organization/affiliation (not to say the dogma or teaching) shapes the mass attitudes.
+
+\ Meanwhile, I acknowledge there are many dimensions in the concept of democracy, but election (as a result of competition and participation) is an inevitable dimension of democracy. Scholars of democracy theory agree that free and fair elections are a principal element of democracy [see @schumpeter201649; @przeworski1996makes; @przeworski1999minimalist]. @przeworski2000democracy suggest that a country minimally must meet at least four conditions to qualify as a democracy: 1) the government's chief executive must be elected; 2) its legislature must be elected; 3) there must be at least two large political parties that can freely compete in elections; 4) and at least one incumbent government must have been defeated and then replaced by an elected successor. In this regard, I apply the minimalist view of democracy that stresses the central role of an election. In the case of Yogyakarta, as the first condition does not meet, the last condition cannot be fulfilled. This situates Yogyakarta conceptually as a monarchy enclave. 
+
+\ In other words, I agree with the notion that attitudes toward whether or not an election should be held for either national or local executive seats clearly approximate attitudes toward democracy. All measures of democracy in the world, such as Polity IV, Freedom House, or Varieties of Democracy (V-Dem), include electoral components as their principal indicators. Furthermore, @knutsen2019economic firmly suggests that "elections play as a focal point for citizen action, mitigating collective action problems" [@knutsen2019economic, p.4]. Hence, it is not exaggerated how people perceive gubernatorial elections signify the extent of their support for democracy. Explicitly, I took the attitude for election (gubernatorial election) as the primary proxy of support for democracy. 
+
+\   In short, while there are mass attitudes captured by modernization-linked variables, predispositions approximated by religion, ethnicity, and affiliation/association are also predictors in investigating the relationship between mass attitudes and democracy. Given such theoretical propositions, my hypotheses are as follows. First (H1), people with strong self-expression values are more likely to support democracy. Second (H2), the higher the social class people are, the more likely they support democracy. Third (H3), people with ethnic origin related to the monarch are less likely to support democracy. Fourth (H4), Muslims are less likely to support democracy. And lastly (H5), people with religious associations are more likely to support democracy. Note that these hypotheses are in the context of the monarchy enclave. Therefore, the following section briefly elaborates on the enclave.
+
+# Yogyakarta: A Monarchy Enclave
+\   The monarchy enclave of Yogyakarta stems from aristocratic cooperation, instead of three historical routes that @moore2015social suggested. In this regard, I argue that the case of the monarchy enclave is a new direction of historical routes from pre-industrial to the modern world [@moore2015social]. Having its historical legacy and roles during the Indonesian independence period, Yogyakarta is the only province among Indonesia's 34 provinces that maintain its monarch tradition in the archipelago. And today provincial border of Yogyakarta province resembles a territorial authority of the kingdom since Dutch colonialism. Since the early 1990s, the tenth-generation King led the monarch publicly known as Sri Sultan Hamengkubuwono X since the late 1980s. His father, Sri Sultan Hamengkubuwono IX, who was crown in 1940, played a crucial role during the struggle for independence period, Sukarno's regime (1945-1965), and Suharto's regime (1966-1998) [see @kurniadi2020defending]. 
+
+\  Yogyakarta and the Sultan's palace had been an emergency capital of newborn Indonesia. The Sultan and its resources had helped the survival of the initial government led by Sukarno.  Sultan HB IX in 1948, for instance, paid salaries of the whole cabinet and staff when the capital resided in Yogyakarta due to colonial-led chaotic circumstances in Jakarta [see @carey1986yogyakarta]. He also served in several ministerial posts and once served as vice president during the Suharto regime. 
+
+\ Assessing such a historical role, it is reasonable that the kingdom cultivated leverage of having special autonomy through its contribution in developing the nation-state of Indonesia. Among other special authorities in the governor's hand, control of land and mode of gubernatorial shift is the most crucial distinction features, making the kingdom the most successful aristocracy in modern Indonesia [see @kurniadi2019defending]. Interestingly, leadership selection in the lower-level administrations follows Indonesian electoral democracy. Many mayoral elections are held regularly in its five municipalities, and village-head elections have also been regular in the last decade. In short, an election is alien to the gubernatorial post traditionally held by the King of Yogyakarta. 
+
+\   Furthermore, the province---and the kingdom---is also known as the center of Javanese culture. More than 40%, ethnic Javanese is the largest ethnic identity in Indonesia among more than 300 ethnicities across the archipelago. A place for the first and oldest university established in Indonesia, hundreds of higher education institutions reside in Yogyakarta that invites students across the archipelago to study. Though such profiles do not mean that Yogyakarta people must be well educated, the spillover of such mobility of the educated people is clear. That is, referring to modernization theory [see @lerner1958passing; @arat1988democracy],  people in Yogyakarta are plausibly exposed to modernity, political discourse, and of course, electoral issues. As outlined in the previous section, economic development is positively associated with support for election [@knutsen2019economic]. In this regard, Yogyakartanese is Indonesian citizens who regularly voted for other elections, from village to national level, but not for gubernatorial position.
+
+\   Due to its numerous higher education institutions, Yogyakarta is a place for well-educated people. Therefore, it is not surprising that reports by Indonesian Statistics Bureau (BPS) show that Yogyakarta is one of the provinces, just second after the Indonesian capital of Jakarta, which has the highest human development index of approaching 80 while other provinces' indexes are below 70 since 2010. However, given such exposure and mobility for decades since the establishment of the Indonesian Republic in the 1940s, one may not find any record of protest or contention demanding gubernatorial election in this province. Does such a peaceful silence show an allegiance?  Mass attitudes in this type of monarchy enclave have not been investigated.
+
+
+# Data and Method 
+
+\   This study analyzes data sets from Research Center for Politics and Government (PolGov), Universitas Gadjah Mada, Indonesia. Given the population is eligible voters in Yogyakarta province, the research center conducted the surveys in three waves, i.e., in 2017, 2018, and 2019 with 779, 602, and 800 respondents, respectively, summing a total of 2181 respondents. All the surveys employ the same method and procedure, i.e., multistage stratified random sampling with a face-to-face mode of data collection. Though the research center originally conducted the surveys to map out the voting behavior of Yogyakartanese people heading to the Indonesian general election held in April 2019, they also captured local issues, including the particular autonomy of Yogyakarta as the only monarch province Indonesia. All the variables examined in this paper are based on the availability of the data in these surveys.
+
+\   One of the essential measures captured by the survey, and related to the current research question, is a measure of regime preference. As **the dependent variable**, the measure of regime preference is critical in this recent research. This measure asks the respondents two options of regime preference: does the respondent agree with reforming the political system through a gubernatorial election like the other provinces or maintaining the monarchy system by self-appointed gubernatorial seat by the king of Yogyakarta. While the 2017 survey delivered two-option measures, the 2018 and 2019 surveys separately measured the two regime preferences. In such a separate measure, I find that about 30% of respondents are ambiguous in the 2018 and 2019 surveys---they agree with the traditional gubernatorial post by the monarchy system in one question and agree with the gubernatorial election in the following question. Though I find that these people share similar demographic characteristics with respondents in the 2017 survey, I discard these ambivalent data. In short, I code the regime preference variable in all three surveys as one if support for gubernatorial election and 0 if support for the monarchy.
+
+\ Regarding the **independent variables**, I draw measures based on the underlying theoretical proposition of mass attitudes outlined earlier. In terms of modernization theory, I examine five focal variables, again, based on the surveys' data availability. These include income, education, women's rights in politics, political awareness, and political participation. While the first two variables constitute the 'traditional' measures in modernization theory, the other three variables approximate the liberal attitudes as the revised version of the civic culture model proposed by revisionists [see @dalton2014civic; @dalton2014reassessing]. I code six-level categories for both income and education, from 1 as low to 6 as high income/education. Women in politics is a binary variable that asks whether the respondents agree with women in politics or not. I code 1 as their agreement and 0 as disagreement. Awareness variable measures whether or not (coded as 0) people are aware (coded 1) about the particular autonomy of Yogyakarta as the only monarch ruling with special authorities that differ from other provinces. Lastly, I examine various potential voters in general elections, abbreviated as Voting in GE, to approximate political participation, one of the self-expression values.^[The Yogyakarta measure of voting attitude is prospective, i.e., how likely the respondents cast their votes in the upcoming general election—presidential and legislative elections. The WVS' measure of the voting attitude is retrospective, i.e., how often the respondents cast their votes in national-level elections in the past. Thus, including WVS' measure for comparison purpose with Yogyakarta's measure is not relevant]
+
+\ Meanwhile, regarding the predisposition theory, I test three variables based on demographic measures, namely, ethnicity, religious denomination, and religious affiliation. As Yogyakarta is the center of Javanese culture, I code 1 if the ethnic identity is Java and 0 if other ethnicities. Similarly, I code 1 if the religious denomination is Islam and 0 if other denominations such as Christian, Buddhism, or Hinduism. Like many Muslims in Indonesia, including in Yogyakarta, are diverse in terms of ritual practices associated with affiliations from the past [see @geertz1963peddlers] to the present time [@fossati2019resurgence], I code religious affiliation variable as one if reported and 0 if not reported.^[These affiliations are mostly known as a religious stream or *aliran* which two major streams dominate the ways how Indonesian Muslims are affiliated, namely, Nahdlatul Ulama that represents traditionalist-syncretist Muslims and Muhammadiyah that approximates modernist-reformist Muslims [see @feith2007indonesian, @fealy2008expressing].]
+
+\ Table 1 and Table 2 show the descriptive statistics of the variables examined in this paper. Following the eight focal variables, I examine eight models consisting of three models of cultural variables and five models of modernization variables. To control for the estimations, I include age (continuous data) as the control variable in all models, gender (1 as male and 0 as female) as the control variable in cultural models, and education (six-level category) as the control variable in modernization models.
+
+```{r summaryYogyakarta, echo=FALSE, results='asis'}
+library("knitr")
+sultant <- subset (sultan, select = c(-religaf, -jobprov))
+colnames(sultant) <- c("Regime Preference", "Sultanah", "Awareness",
+                       "Women in Politics","Voting in GE", "Income","Religious Affiliation",
+                      "Age", "Religion", "Ethnicity", "Gender", "Education")
+
+kable(summarize(sultant, type = "numeric", show.NAs = FALSE),
+      caption = "Descriptive Statistics of Yogyakarta Variables", 
+      format = "pipe")
+
+```
+
+
+Given the dichotomous nature of the dependent variable, I examine all the variables by applying logistic regression as follows.
+
+$$ 
+Pr(RP=1) = logit^-.^1 (\alpha + \beta_1 IV  + \beta_2 X)
+$$ 
+\   where RP is our dependent variable of regime preference, IV refers to our eight independent variables and X denotes our control variables. Based on the theoretical propositions outlined in the previous section, I expect that the probability of preferring democracy regime approximated by support for gubernatorial election is positively associated with modernization variables but it is negatively linked to predisposition variables.
+
+\   To support my argument of the distinct mass attitudes of Yogyakarta people, I examine national-level attitudes through the most current wave of World Values Survey conducted in 2018. Based on the relevance of this study, the data provide two reliable measure of attitude toward regime preference, namely, the importance of democracy and satisfaction of the political system. Both measure the dependent variable with 1-10 scale where 1 means the lowest and 10 the highest score.
+
+```{r summaryWVS, echo=FALSE, results='asis'}
+library("knitr")
+library("papeR")
+
+wvsfixed <- subset (i, select = c(demimportant, satisfaction, edu, income,
+                                  age, women, sex))
+colnames(wvsfixed) <- c("Importance of Democracy", "Satisfaction of Political System", "Education", "Income", "Age", "Women Right", "Gender")
+
+kable(summarize(wvsfixed, type = "numeric", show.NAs = FALSE),
+      caption = "Descriptive Statistics of 2018 WVS Variables in Indonesia",
+      format = "pipe")
+
+```
+
+
+\   I test these variable with three focal independent variables found statistically significant and relevant in Yogyakarta case, i.e., income, education, and perception on women rights. While income and education are level-based categorical variable with 1 as the lowest category, women rights is 1-10 scale variable similar to the measure of the dependent variables. Descriptive statistics of these WVS variables are displayed in Table 2. Referring to the nature of the data, I apply Ordinary Least Square (OLS) regression to examine the WVS data, as follows.
+
+$$ 
+Y = \alpha + \beta_1 IV  + \beta_2 X
+$$
+
+where Y is the two dependent variables, IV represents the three dependent variables. and X denotes the control variables. By controlling gender and age, examination of the WVS will generate six models. Yet, the data shows counter-intuitive findings. The following section elaborates the results. I will discuss all the variables displayed in Table 1 and Table 2 on the basis of the results.
+
+
+# Results 
+
+\   After re-coding the dependent variable of regime preference, here I show that the results for 2018 and 2019 surveys are similar to that for 2017 survey. As shown in Figure 1, we might be surprised with the results that roughly 73-75% people prefer the monarchy regime (gubernatorial seat by the monarch) to the democratic regime (gubernatorial seat by election). Given that the surveys were conducted approaching Indonesian general election in April 2019, the proportion of mass attitudes preferring gubernatorial seat by the monarch remains roughly the same. This early descriptive finding suggests a type of obedient attitudes among people in Yogyakarta. But who are these people? To answer this, it is time to examine variables proposed by both cultural and modernization proponents.
+
+```{r trendmonarch, echo=FALSE, include=FALSE}
+S.2017 <- prop.table(table(sultan17$gub17))*100
+S.2018 <- prop.table(table(sultan18$gub18))*100
+S.2019 <- prop.table(table(sultan19$gub19))*100
+
+trendmonarch <- data.frame("2017"=S.2017, "2018"=S.2018, "2019"=S.2019)
+trendmonarch <- c(c(74.24, 75.82, 73.89), c("2017", "2018", "2019"))
+trendmonarch <- c(sultan17$gub17, gub18am, gub19am)
+```
+
+|                      | 2017  | 2018  | 2019  |
+|----------------------|-------|-------|-------|
+| Support for Monarchy | 74.24 | 75.82 | 73.89 |
+| Support for Election | 25.76 | 24.18 | 26.11 |
+
+: Support for Gubernatorial Seat by Monarch or by Election in Yogyakarta (%)
+
+
+
+
+Figure.
+Logistic Regression of Mass Attitudes in Yogyakarta
+
+\ I report logistic regression results of Yogyakarta's mass attitudes in Figure 2 and Table 2. Therefore, the coefficients should be read as the log odds ratio. Yet, it is sufficient to understand the results whether the coefficients are positive and negative.  Overall, the results suggest that variables of modernization, especially in model M4, M6, and M7, explain better than those of predisposition variables. The focal variables in these three models are statistically significant (p < 0.05) while none of the predisposition model variables is found significant. 
+
+\   More surprisingly, coefficients of income (-0.105) in M4 and perception about women rights (-0.392) in M6 are negative. These findings are counter-intuitive with the hypotheses and the literature outlined above. The negative coefficient of income in M4 suggests that a high-income individual is more likely to be proud of having monarchy. Importantly, M6 displays a result of how people who have liberal view, known as the liberals, approximated by strong support for women rights, also are more likely to prefer gubernatorial seat by monarch to by election. 
+
+\   The result that approximate liberal attitude displays negative coefficients for women's rights in politics. This means that people who advocate the rights for women in politics and---implicitly agree with the idea that a woman is eligible to lead the monarch---even are more likely to support the monarchy.^[There is a growing concern about the idea of Sultanah (the woman monarch) since the current Sultan Hamengkubuwono X only have daughters, which are problematic in the Sultanate tradition to have a queen as the ruling monarch [see @woodward1989islam; @carey1986yogyakarta]]. As the other significant variable, tt is not surprising in M7 where people who are aware of the special autonomy of the Yogyakarta monarchy (-0.646) also less likely to have a view of gubernatorial election. 
+
+\ Meanwhile, the first three models of the Yogyakarta case, i.e., M1, M2, and M3, specify predisposition variables of ethnicity, religion and religious affiliation. All of the focal variables in these models are not statistically significant (p < 0.05). Age is the strongest predictor, however. Across the model where the age of respondents is the control variable, the coefficients are all negative. This means that the older the people is, the less likely to support gubernatorial election but the more likely to enjoy the monarchy. Gender is also a good explainer where the positive coefficients signify that men is more supportive for election than women. 
+
+```{r regressSultan, echo=FALSE}
+glm.c1 <- glm(gub ~ ethnic + relig + age + sex, data = sultan, 
+             family = binomial(link = "logit"))
+glm.c2 <- glm(gub ~ reliaf01 + age + sex, data = sultan, 
+             family = binomial(link = "logit"))
+glm.c3 <- glm(gub ~ relig + age + sex, data = sultan, 
+             family = binomial(link = "logit"))
+glm.m1 <- glm(gub ~ income + edu + age, data = sultan, 
+             family = binomial(link = "logit"))
+glm.m2 <- glm(gub ~ edu + age, data = sultan, 
+             family = binomial(link = "logit"))
+glm.m3 <- glm(gub ~  women + age, data = sultan, 
+             family = binomial(link = "logit"))
+glm.m4 <- glm(gub ~  knowdiy + edu + age, data = sultan, 
+             family = binomial(link = "logit"))
+glm.m5 <- glm(gub ~  potvto + edu + age, data = sultan, 
+             family = binomial(link = "logit"))
+
+```
+
+
+```{r regress.modern, echo=FALSE}
+glm17m <- glm(gub17 ~ income17 + edu17, data = sultan17, 
+             family = binomial(link = "logit"))
+glm18m <- glm(gub18 ~ income18 + edu18, data = sultan18, 
+             family = binomial(link = "logit"))
+glm19m <- glm(gub19 ~ income19 + edu19, data = sultan19, 
+             family = binomial(link = "logit"))
+
+```
+
+```{r logit_plotHJogja, out.width="50%", fig.show='hold',fig.cap="Logistic Regression. Support for Monarchy in Yogyakarta, Indonesia", echo=FALSE}
+
+library(effects) # display plot for logit
+
+lgrel <- coef(glm.c1)[[2]]
+lgaff <- coef(glm.c2)[[2]]
+lg.all <- c(lgrel, lgaff)
+# alllogit
+# plot(allEffects(lg.all))
+# plot(effect(lgrel))
+
+par(mfrow=c(4,2))
+plot(effect("women", glm.m3), main = "Women Rights", 
+     xlab = "Women in Politics", ylab = "Regime Preference", 
+     colors = "black")
+plot(effect("income", glm.m1),  main = "Income", 
+     xlab = "Income", ylab = "Regime Preference", 
+     colors = "black")
+plot(effect("knowdiy", glm.m4),  main = "Awareness", 
+     xlab = "Awareness of Special Autonomy", ylab = "Regime Preference", 
+     colors = "black")
+plot(effect("potvto", glm.m5),  main = "Electoral Participation",
+     xlab = "Potential Voting in General Election", ylab = "Regime Preference", 
+     colors = "black")
+plot(effect("edu", glm.m4), main = "Education", 
+     xlab = "Education", ylab = "Regime Preference", 
+     colors = "black")
+plot(effect("ethnic", glm.c1),  main = "Ethnicity", 
+     xlab = "Ethnicity", ylab = "Regime Preference", 
+     colors = "black")
+plot(effect("reliaf01", glm.c2),  main = "Affiliation", 
+     xlab = "Religious Affiliation", ylab = "Regime Preference", 
+     colors = "black")
+plot(effect("relig", glm.c3),  main = "Religion",
+     xlab = "Religion Denomination", ylab = "Regime Preference", 
+     colors = "black")
+
+
+```
+
+
+
+```{=tex}
+\newpage
+\blandscape
+```
+
+```{r tableregressall, echo=FALSE, message=FALSE , results='asis'}
+stargazer(glm.c1, glm.c2, glm.c3, glm.m1, glm.m2, glm.m3, glm.m4, glm.m5,
+          type = "latex",
+  title = "Logistic Regression. Support for Monarchy in Yogyakarta, Indonesia",
+  header = FALSE, # SHOULD BE INCLUDED
+  column.labels = c("M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8"),
+  colnames = FALSE,
+  model.numbers = FALSE,
+  dep.var.caption = " ",
+  dep.var.labels = "Regime Preference$^a$",
+  covariate.labels = c("Ethnicity", "Religion", "Religious Affiliation", 
+                       "Income", "Awareness", "Voting in GE", "Education",
+                       "Women in Politics", "Age", "Gender"),
+  notes = "$^a$Dependent Variable: 0 = Support for Monarcy and 1 = Support for Democracy(Election)",
+  notes.align = "l",
+  style = "ajps"
+  )
+
+
+# for guidance, see https://zief0002.github.io/book-8252/pretty-printing-tables-in-markdown.html and https://www.datadreaming.org/post/apa-tables-using-rmarkdown-part-5/
+
+# \newpage
+# # References
+# <div id="refs"></div>
+
+```
+\elandscape
+
+
+```{r WVSOLS, include=FALSE, echo=FALSE}
+lmimp.edu <- lm(demimportant ~ edu + sex + age , data = i)
+lmimp.income <- lm(demimportant ~ income + sex + age , data = i)
+lmimp.women <- lm(demimportant ~ women + sex + age , data = i)
+
+lmsatis.edu <- lm(satisfaction ~ edu + sex + age , data = i)
+lmsatis.income <- lm(satisfaction ~ income + sex + age , data = i)
+lmsatis.women <- lm(satisfaction ~ women + sex + age , data = i)
+
+lmjudge.edu <- lm(demgood ~ edu + sex + age , data = i)
+lmjudge.income <- lm(demgood ~ income + sex + age , data = i)
+lmjudge.women <- lm(demgood ~ women + sex + age , data = i)
+
+```
+
+```{r WVStabOLS, echo=FALSE, message=FALSE , results='asis'}
+stargazer(lmimp.edu, lmimp.income, lmimp.women, 
+          lmsatis.edu, lmsatis.income, lmsatis.women,
+          # lmjudge.edu, lmjudge.income, lmjudge.women,  , "M7", "M8", "M9"
+          type = "latex",
+  title = "OLS Regression. Attitudes Toward the Importance of Democracy and Satisfaction of Political System Based on 2018 World Values Survey in Indonesia",
+  header = FALSE, # SHOULD BE INCLUDED
+  column.labels = c("M1","M2", "M3", "M4", "M5", "M6"),
+  colnames = FALSE,
+  model.numbers = FALSE,
+  dep.var.caption = "",
+  dep.var.labels = c("Importance of Democracy $^a$", 
+                     "Satisfaction of Political System$^a$"),
+  covariate.labels = c("Education", "Income", "Women Right", "Gender", "Age"),
+  notes = "$^a$Dependent Variables, 1-10 Scale: 1 = The Lowest, 10 = The Highest",
+  notes.align = "l",
+  keep.stat = c("n", "rsq")
+  )
+
+# 
+# \newpage
+# \blandscape
+# \elandscape
+```
+
+
+\   In summary, examination of mass attitudes in the monarchy enclave of Yogyakarta exhibits people with liberal views but obedient to the monarchy system. I abbreviate these people as obedient liberals. These findings nevertheless contradict mass attitudes at the national level. As shown in Table 5, Indonesian mass attitudes mostly exhibit confirmatory results with the literature of political culture. In terms of the importance of democracy, both education (0.202) and support for women's rights (0.232) have positive results signifying that the higher the education people have accomplished, and the higher support for women's rights people have views. These people give a higher rate for the importance of democracy. 
+
+\ Though the coefficient is negative, which is similar to the Yogyakarta result, income at national-level mass attitudes is not statistically significant. Regarding satisfaction of the political system, education (-0.086) is negatively associated. This result makes sense as people with higher education are less satisfied with the political system operating in Indonesia than people with low education. The other two models, income (0.083) and support for women's rights (0.084) have a positive relationship. All these three variables in terms of satisfaction of the political system are statistically significant (p < 0.05). 
+
+\ Thus, mass attitudes in monarchy enclave display a contradictory feature with those at the national level, which mostly conform theories of mass attitudes discussed earlier. How then these results relate to the debate of mass attitudes toward democracy across societies? The following section discusses these findings in response to the literature on mass attitudes, democracy, and particular regimes.
+
+# Discussion
+\ The three-wave surveys in 2017, 2018, and 2019 show that electoral circumstances approaching the Indonesian general election in April 2019 do not hinder the public support towards the monarch. As Table 1 shows, a large majority of people (95%) of Yogyakarta, i.e., variable `voting in GE`, share their willingness to participate in the 2019 general election, which is also in line with past records of their high voting turns out (always above 70%). This high level of political participation---a variable that approximates Inglehart and Welzel's self-expression values---depicts a tangible sign of support for democracy. But at the same time, roughly two-thirds of people in the monarchy enclave agree with the king of Yogyakarta to be the self-appointed governor or support for non-gubernatorial election.
+
+\ The findings suggest the idea of obedient liberals. It means that a large number of people have liberal views, i.e., supporting women in politics. Still, these people, including the middle-upper class by income, are proud of having a monarchy regime or a preference for not supporting gubernatorial election. This finding meets with the public salience following the democratization in the late 1990s. People of Yogyakarta even remain 'obedient' when popular direct elections for gubernatorial and mayoral elections were introduced across the archipelago in 2005 [see @budi2020less]. 
+
+\   Yogyakarta is a place where protests to topple Suharto's authoritarian regime emerge. During the heyday of the authoritarian breakdown in the late 1990s and after the following democratization period five years later, none of the civilian protests, in any form, emerge to demand a gubernatorial election in Yogyakarta. This obedient attitude is counterintuitive with global trends where middle-upper class citizens approximated by income are more critical and assertive toward their political institutions, elites, or regimes. @jakobsen2014social[p. 221-225], for instance, show that the higher the GDP per capita (PPP) in a country relates to the higher percentage of people participating in protests. 
+
+\ Additionally, on the one hand, the Yogyakarta case might meet the argument of the critical juncture of the historical path as what @acemoglu2006economic suggests. On the other hand, it might deviate from the historical route of industrialization proposed by @moore2015social. Ingelhart and Wenzel (2010) justify their cultural variable from Acemoglu and Robinson, who conclude that neither economic development-democracy nor democratic institutions-development is causal, but the fixed national effect (society's historical, cultural, and critical junctures). Modernization scholars may argue that public attitudes are not as stable as variables on economic development. But in Yogyakarta, the positive mass attitudes toward the monarchy persist. 
+
+\ Furthermore, Dalton and other revisionists of the civic culture model suggest assertive citizens, and Norris (1999) also argues a similar fashion: critical citizen. The two notions flow in the same vein that citizens support democracy as a political system but critical to its practices. In the case of Yogyakarta, citizens display double attitudes.  People in Yogyakarta support for democracy shown in electoral participation, but they are obedient by agreeing with the monarchy system. Nevertheless, a query of how people bear contradictory attitudes stems from Dalton and Shin's (2014) work when they find that people in authoritarianism support democracy but are proud of the regime.  Departing from Dalton and Welzel's intriguing finding, here I suggest that the monarchy regime, implicitly the institutions and the monarchs, have shaped and driven mass attitudes and values in the case of Yogyakarta.
+
+\   Through what mechanism does such a regime shape the obedient liberals? The findings shed light on the idea of habituation in a particular political context that shapes mass attitudes. These findings are in line with other non-democratic enclaves. In the case of a dominant-party enclave in San Luis province of Argentina and Edomax state of Mexico, @hiskey2020authoritarian find that the political system operating in sub-national levels affects how citizens in such enclaves perceive themselves and democracy that are different from citizens in their counterparts in multiparty provincial regimes. Citizens in dominant party enclave "tend to hold less democratic attitudes and are less willing to punish incumbents for poor performance, are less concerned about government corruption, and are more likely to partici- pate in politics in ways that directly benefit the dominant party" [@hiskey2020authoritarian, p.9].
+
+\ Yet, this obedient liberal also differs from the state-dependent middle class in @rosenfeld2017reevaluating study. In Russia's case, he suggests that we cannot take the middle class for granted as the large proportion of the state-dependent middle class—the who rely their well-being on state institutions—do not support the ideals of democracy. In the case of Yogyakarta, however, the proportion of the state-dependent middle class is much less. Yogyakarta's survey data shows that people who are under this category, i.e., by occupation, are just about 3% across the three surveys. 
+
+\ The slow progress of democratization might be explained by such mass attitudes of having liberal views but obedient. The World Values Survey and other similar global surveys that capture mass attitudes worldwide and across time do not provide specific measures for monarchy setting. Therefore, further examinations need to address other monarchies such as Brunei Darussalam, Saudi Arabia, Tonga, Monaco, and other existing monarchy regimes for future research agenda. Based on the examination of Yogyakarta case, obedient attitudes in some extent might be present these monarchy regime. Yet, this study proposes that specific measures related to the monarchy regime in such countries need to be addressed in future survey projects.
+
+\ Lastly, we might need to anticipate the future drivers of the change of mass attitudes and values since the digital era situates people getting more connected with their counterparts in other parts of the globe than their neighboring dwellers. In turn, following Inglehart's cultural map framework, this 'global village' potentially boosts secular-rational and self-expression values relative to traditional and survival values, regardless of whether the societies are industrial or agricultural and democracy or monarchy.
+
+
+
+
+\newpage
+# References
+<div id="refs"></div>
+
+
